@@ -1,12 +1,26 @@
+// src/App.js
 import React, { useState, useEffect } from 'react';
 import './App.css';
+import web3 from './web3';
+import bettingContract from './BettingContract';
 
 function App() {
   const [team, setTeam] = useState('');
   const [betAmount, setBetAmount] = useState('0.00');
-  const [oddA, setOddA] = useState((Math.random() * (3 - 1.5) + 1.5).toFixed(2)); // ODD aleatória para Time A
-  const [oddB, setOddB] = useState((Math.random() * (3 - 1.5) + 1.5).toFixed(2)); // ODD aleatória para Time B
+  const [oddA, setOddA] = useState((Math.random() * (3 - 1.5) + 1.5).toFixed(2));
+  const [oddB, setOddB] = useState((Math.random() * (3 - 1.5) + 1.5).toFixed(2));
   const [totalReturn, setTotalReturn] = useState('0.00');
+  const [account, setAccount] = useState('');
+
+  useEffect(() => {
+    // Conectar a conta do MetaMask
+    const loadAccount = async () => {
+      const accounts = await web3.eth.requestAccounts();
+      setAccount(accounts[0]);
+    };
+
+    loadAccount();
+  }, []);
 
   useEffect(() => {
     const selectedOdd = team === 'Time A' ? oddA : team === 'Time B' ? oddB : 1;
@@ -23,15 +37,24 @@ function App() {
   };
 
   const handleBetAmountChange = (e) => {
-    const rawValue = e.target.value.replace(/\D/g, ''); // Remove non-numeric characters
-    if (rawValue.length <= 6) { // Limita a quantidade de dígitos
+    const rawValue = e.target.value.replace(/\D/g, '');
+    if (rawValue.length <= 6) {
       setBetAmount(formatCurrency(rawValue));
     }
   };
 
-  const handleBet = () => {
+  const handleBet = async () => {
     if (team && betAmount > 0) {
-      alert(`Você apostou R$ ${betAmount} no ${team}. Possível retorno: R$ ${totalReturn}`);
+      try {
+        await bettingContract.methods.placeBet(team === 'Time A' ? 1 : 2).send({
+          from: account,
+          value: web3.utils.toWei(betAmount, 'ether')
+        });
+        alert(`Você apostou R$ ${betAmount} no ${team}. Possível retorno: R$ ${totalReturn}`);
+      } catch (error) {
+        alert('Erro ao fazer a aposta. Verifique o console para detalhes.');
+        console.error(error);
+      }
     } else {
       alert('Por favor, selecione um time e insira um valor para apostar.');
     }
@@ -76,7 +99,6 @@ function App() {
         <button onClick={handleBet}>Apostar</button>
       </div>
     </div>
-
   );
 }
 
