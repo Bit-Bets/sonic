@@ -1,64 +1,67 @@
-// src/App.js
 import React, { useState, useEffect } from 'react';
 import './App.css';
-import web3 from './web3';
-import bettingContract from './BettingContract';
+import { web3, contract } from './web3Utils';
 
 function App() {
   const [team, setTeam] = useState('');
-  const [betAmount, setBetAmount] = useState('0.00');
+  const [betAmount, setBetAmount] = useState('');
   const [oddA, setOddA] = useState((Math.random() * (3 - 1.5) + 1.5).toFixed(2));
   const [oddB, setOddB] = useState((Math.random() * (3 - 1.5) + 1.5).toFixed(2));
   const [totalReturn, setTotalReturn] = useState('0.00');
-  const [account, setAccount] = useState('');
-
-  useEffect(() => {
-    // Conectar a conta do MetaMask
-    const loadAccount = async () => {
-      const accounts = await web3.eth.requestAccounts();
-      setAccount(accounts[0]);
-    };
-
-    loadAccount();
-  }, []);
 
   useEffect(() => {
     const selectedOdd = team === 'Time A' ? oddA : team === 'Time B' ? oddB : 1;
-    setTotalReturn((betAmount * selectedOdd).toFixed(2));
+    const formattedAmount = parseFloat(betAmount) || 0;
+    setTotalReturn((formattedAmount * selectedOdd).toFixed(2));
   }, [betAmount, team, oddA, oddB]);
 
   const handleTeamClick = (selectedTeam) => {
     setTeam(selectedTeam);
   };
 
-  const formatCurrency = (value) => {
-    const numericValue = parseInt(value.replace(/\D/g, '')) || 0;
-    return (numericValue / 100).toFixed(2);
-  };
-
   const handleBetAmountChange = (e) => {
-    const rawValue = e.target.value.replace(/\D/g, '');
-    if (rawValue.length <= 6) {
-      setBetAmount(formatCurrency(rawValue));
+    const value = e.target.value;
+    if (/^\d*\.?\d*$/.test(value)) {
+      setBetAmount(value);
     }
   };
 
   const handleBet = async () => {
-    if (team && betAmount > 0) {
+    if (team && parseFloat(betAmount) > 0) {
+      const accounts = await web3.eth.getAccounts();
+      const account = accounts[0];
+      const balanceInWei = await web3.eth.getBalance(account);
+      const balance = web3.utils.fromWei(balanceInWei, 'ether');
+      console.log(`Saldo da conta: ${balance} ETH`);
+      console.log(`Saldo da conta (Wei): ${balanceInWei}`);
+  
+      const amountInWei = web3.utils.toWei(betAmount, 'ether');
+      if (parseFloat(amountInWei) > parseFloat(balanceInWei)) {
+        alert('Saldo insuficiente para realizar a aposta.');
+        return;
+      }
+  
       try {
-        await bettingContract.methods.placeBet(team === 'Time A' ? 1 : 2).send({
-          from: account,
-          value: web3.utils.toWei(betAmount, 'ether')
-        });
+        await contract.methods.placeBet(team === 'Time A' ? 1 : 2)
+          .send({ 
+            from: account, 
+            value: amountInWei,
+            gas: 3000000, // Ajuste conforme necessário
+            gasPrice: web3.utils.toWei('20', 'gwei') // Ajuste conforme necessário
+          });
         alert(`Você apostou R$ ${betAmount} no ${team}. Possível retorno: R$ ${totalReturn}`);
       } catch (error) {
-        alert('Erro ao fazer a aposta. Verifique o console para detalhes.');
-        console.error(error);
+        alert('Erro ao realizar a aposta. Verifique se você tem fundos suficientes.');
+        console.error('Erro ao realizar a aposta:', error);
       }
     } else {
       alert('Por favor, selecione um time e insira um valor para apostar.');
     }
   };
+  
+  
+  
+  
 
   return (
     <div className="App">
@@ -87,8 +90,8 @@ function App() {
       <div>
         <input
           type="text"
-          placeholder="R$ 0,00"
-          value={`R$ ${betAmount}`}
+          placeholder="Digite o valor"
+          value={betAmount}
           onChange={handleBetAmountChange}
         />
       </div>
