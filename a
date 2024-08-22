@@ -1,0 +1,32 @@
+const handleBet = async () => {
+    if (team && parseFloat(betAmount) > 0) {
+      const accounts = await web3.eth.getAccounts();
+      const account = accounts[0];
+      const balanceInWei = await web3.eth.getBalance(account);
+      const balance = web3.utils.fromWei(balanceInWei, 'ether');
+      console.log(`Saldo da conta: ${balance} ETH`);
+      console.log(`Saldo da conta (Wei): ${balanceInWei}`);
+  
+      const amountInWei = web3.utils.toWei(betAmount, 'ether');
+      if (parseFloat(amountInWei) > parseFloat(balanceInWei)) {
+        alert('Saldo insuficiente para realizar a aposta.');
+        return;
+      }
+  
+      try {
+        await contract.methods.placeBet(team === 'Time A' ? 1 : 2)
+          .send({ 
+            from: account, 
+            value: amountInWei,
+            gas: 3000000, // Ajuste conforme necessário
+            gasPrice: web3.utils.toWei('20', 'gwei') // Ajuste conforme necessário
+          });
+        alert(`Você apostou R$ ${betAmount} no ${team}. Possível retorno: R$ ${totalReturn}`);
+      } catch (error) {
+        alert('Erro ao realizar a aposta. Verifique se você tem fundos suficientes.');
+        console.error('Erro ao realizar a aposta:', error);
+      }
+    } else {
+      alert('Por favor, selecione um time e insira um valor para apostar.');
+    }
+  };
