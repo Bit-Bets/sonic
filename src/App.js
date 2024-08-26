@@ -37,7 +37,9 @@ function App() {
           await window.ethereum.request({ method: 'eth_requestAccounts' });
           await fetchBalance(); 
         } else {
-          alert('Por favor, instale o MetaMask para usar esta aplicação.');
+          if (window.confirm('Por favor, instale o MetaMask para usar esta aplicação. Você gostaria de visitar a página de download?')) {
+            window.open('https://metamask.io/download/', '_blank');
+          }
         }
       } catch (error) {
         console.error('Error connecting to MetaMask:', error);
