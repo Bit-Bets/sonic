@@ -1,17 +1,11 @@
 import Web3 from 'web3';
-import BettingABI from './BettingABI.json'; // ABI do contrato
-
-const CONTRACT_ADDRESS = '0xf844706ce65e501b8f1435b24f05fe734a0beb3d'; // Endereço do contrato na blockchain
+import BettingABI from './BettingABI.json'; // Certifique-se de que o caminho está correto
 
 let web3;
-let contract;
 
 if (window.ethereum) {
   web3 = new Web3(window.ethereum);
   window.ethereum.request({ method: 'eth_requestAccounts' })
-    .then(() => {
-      contract = new web3.eth.Contract(BettingABI, CONTRACT_ADDRESS);
-    })
     .catch((error) => {
       console.error('User denied account access', error);
     });
@@ -30,4 +24,4 @@ if (window.ethereum) {
   }
 }
 
-export { web3, contract };
+export { web3, BettingABI };

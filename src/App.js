@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
-import { web3, contract } from './web3Utils';
+import { web3, BettingABI } from './web3Utils';
 
 function App() {
+  const [contractAddress, setContractAddress] = useState('');
+  const [contract, setContract] = useState(null);
+  const [contractBalance, setContractBalance] = useState('0.00 ETH');
   const [team, setTeam] = useState('');
   const [betAmount, setBetAmount] = useState('');
   const [oddA, setOddA] = useState((Math.random() * (3 - 1.5) + 1.5).toFixed(2));
@@ -30,6 +33,18 @@ function App() {
     }
   };
 
+  const fetchContractBalance = async () => {
+    try {
+      if (contractAddress && web3.utils.isAddress(contractAddress)) {
+        const balanceInWei = await web3.eth.getBalance(contractAddress);
+        const balanceInEth = web3.utils.fromWei(balanceInWei, 'ether');
+        setContractBalance(`${balanceInEth} ETH`);
+      }
+    } catch (error) {
+      console.error('Error fetching contract balance:', error);
+    }
+  };
+
   useEffect(() => {
     const connectWallet = async () => {
       try {
@@ -37,23 +52,38 @@ function App() {
           await window.ethereum.request({ method: 'eth_requestAccounts' });
           await fetchBalance(); 
         } else {
-          if (window.confirm('Por favor, instale o MetaMask para usar esta aplicação. Você gostaria de visitar a página de download?')) {
-            window.open('https://metamask.io/download/', '_blank');
-          }
+          alert('Por favor, instale o MetaMask para usar esta aplicação.');
         }
       } catch (error) {
         console.error('Error connecting to MetaMask:', error);
       }
     };
-
+  
     connectWallet();
-
+  
     const balanceInterval = setInterval(async () => {
       await fetchBalance();
+      await fetchContractBalance(); // Atualiza o saldo do contrato também
     }, 1000);
-
+  
     return () => clearInterval(balanceInterval);
-  }, []);
+  }, [contractAddress]); // Adiciona `contractAddress` como dependência para garantir que o saldo seja atualizado quando o contrato mudar
+
+  const handleContractAddressChange = (e) => {
+    setContractAddress(e.target.value);
+  };
+
+  const handleConfirmAddress = async () => {
+    if (web3.utils.isAddress(contractAddress)) {
+      const newContract = new web3.eth.Contract(BettingABI, contractAddress);
+      setContract(newContract);
+
+      // Verifica o saldo do contrato imediatamente após a confirmação
+      await fetchContractBalance();
+    } else {
+      alert('Por favor, insira um endereço válido de contrato.');
+    }
+  };
 
   const handleTeamClick = (selectedTeam) => {
     setTeam(selectedTeam);
@@ -67,6 +97,11 @@ function App() {
   };
 
   const handleBet = async () => {
+    if (!contract) {
+      alert('Por favor, insira um endereço de contrato válido.');
+      return;
+    }
+
     if (team && parseFloat(betAmount) > 0) {
       const accounts = await web3.eth.getAccounts();
       const account = accounts[0];
@@ -89,7 +124,7 @@ function App() {
             gas: 3000000,
             gasPrice: web3.utils.toWei('20', 'gwei')
           });
-        alert(`Você apostou R$ ${betAmount} no ${team}. Possível retorno: R$ ${totalReturn}`);
+        alert(`Você apostou ETH ${betAmount} no ${team}. Possível retorno: ETH ${totalReturn}`);
       } catch (error) {
         alert('Erro ao realizar a aposta. Verifique se você tem fundos suficientes.');
         console.error('Erro ao realizar a aposta:', error);
@@ -101,46 +136,65 @@ function App() {
 
   return (
     <div className="App">
-      <div className="wallet-balance">
-        <p>Saldo da carteira:</p>
-        <p>{balance}</p>
-      </div>
-      <h1>Bit Bets</h1>
-      <p>Para ganhar:</p>
-      <div className="button-container">
-        <div>
-          <button
-            className={team === 'Time A' ? 'selected' : ''}
-            onClick={() => handleTeamClick('Time A')}
-          >
-            Time A
-          </button>
-          <p>ODD: {oddA}</p>
+      {!contract ? (
+        <div className="contract-address-container">
+          <h2>Insira o endereço do contrato</h2>
+          <input
+            type="text"
+            placeholder="Digite o endereço do contrato"
+            value={contractAddress}
+            onChange={handleContractAddressChange}
+          />
+          <button onClick={handleConfirmAddress}>Confirmar</button>
         </div>
+      ) : (
         <div>
-          <button
-            className={team === 'Time B' ? 'selected' : ''}
-            onClick={() => handleTeamClick('Time B')}
-          >
-            Time B
-          </button>
-          <p>ODD: {oddB}</p>
+          <div className="wallet-balance">
+            <p>Saldo da carteira:</p>
+            <p>{balance}</p>
+          </div>
+          <div className="contract-balance">
+            <p>Saldo do contrato:</p>
+            <p>{contractBalance}</p>
+          </div>
+          <h1>Bit Bets</h1>
+          <p>Para ganhar:</p>
+          <div className="button-container">
+            <div>
+              <button
+                className={team === 'Time A' ? 'selected' : ''}
+                onClick={() => handleTeamClick('Time A')}
+              >
+                Time A
+              </button>
+              <p>ODD: {oddA}</p>
+            </div>
+            <div>
+              <button
+                className={team === 'Time B' ? 'selected' : ''}
+                onClick={() => handleTeamClick('Time B')}
+              >
+                Time B
+              </button>
+              <p>ODD: {oddB}</p>
+            </div>
+          </div>
+          <div>
+            <input
+              type="text"
+              placeholder="Digite o valor"
+              value={betAmount}
+              onChange={handleBetAmountChange}
+            />
+          </div>
+          <div>
+            <p>Possível Retorno: ETH {totalReturn}</p>
+          </div>
+          <div>
+            <button onClick={handleBet}>Apostar</button>
+          </div>
         </div>
-      </div>
-      <div>
-        <input
-          type="text"
-          placeholder="Digite o valor"
-          value={betAmount}
-          onChange={handleBetAmountChange}
-        />
-      </div>
-      <div>
-        <p>Possível Retorno: R$ {totalReturn}</p>
-      </div>
-      <div>
-        <button onClick={handleBet}>Apostar</button>
-      </div>
+      )}
     </div>
   );
 }
