@@ -25,7 +25,9 @@ if (window.ethereum) {
     window.location.reload(); // Recarrega a página ao detectar mudança na rede
   });
 } else {
-  alert('Por favor, instale o MetaMask para usar esta aplicação.');
+  if (window.confirm('Por favor, instale o MetaMask para usar esta aplicação. Você gostaria de visitar a página de download?')) {
+    window.open('https://metamask.io/download/', '_blank');
+  }
 }
 
 export { web3, contract };
