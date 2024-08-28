@@ -47,12 +47,12 @@ function App() {
         console.log('Fetching odds for Team A...');
         const oddA = await contract.methods.viewOdds(1).call();
         console.log('Odd A:', oddA.toString());  // Converte BigInt para String
-        setOddA((Number(oddA) / 100).toFixed(2));  // Converte para número antes de calcular
+        setOddA((Number(oddA) / 10).toFixed(2));  // Converte para número antes de calcular
 
         console.log('Fetching odds for Team B...');
         const oddB = await contract.methods.viewOdds(2).call();
         console.log('Odd B:', oddB.toString());  // Converte BigInt para String
-        setOddB((Number(oddB) / 100).toFixed(2));  // Converte para número antes de calcular
+        setOddB((Number(oddB) / 10).toFixed(2));  // Converte para número antes de calcular
       }
     } catch (error) {
       console.error('Error fetching contract details:', error);
