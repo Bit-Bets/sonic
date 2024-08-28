@@ -6,18 +6,20 @@ function App() {
   const [contractAddress, setContractAddress] = useState('');
   const [contract, setContract] = useState(null);
   const [contractBalance, setContractBalance] = useState('0.00 ETH');
-  const [team, setTeam] = useState('');
+  const [teamAName, setTeamAName] = useState('Time A');
+  const [teamBName, setTeamBName] = useState('Time B');
   const [betAmount, setBetAmount] = useState('');
-  const [oddA, setOddA] = useState((Math.random() * (3 - 1.5) + 1.5).toFixed(2));
-  const [oddB, setOddB] = useState((Math.random() * (3 - 1.5) + 1.5).toFixed(2));
+  const [oddA, setOddA] = useState('1.00');
+  const [oddB, setOddB] = useState('1.00');
   const [totalReturn, setTotalReturn] = useState('0.00');
   const [balance, setBalance] = useState('0.00 ETH');
+  const [team, setTeam] = useState('');
 
   useEffect(() => {
-    const selectedOdd = team === 'Time A' ? oddA : team === 'Time B' ? oddB : 1;
+    const selectedOdd = team === teamAName ? oddA : team === teamBName ? oddB : 1;
     const formattedAmount = parseFloat(betAmount) || 0;
     setTotalReturn((formattedAmount * selectedOdd).toFixed(2));
-  }, [betAmount, team, oddA, oddB]);
+  }, [betAmount, team, oddA, oddB, teamAName, teamBName]);
 
   const fetchBalance = async () => {
     try {
@@ -30,6 +32,23 @@ function App() {
       }
     } catch (error) {
       console.error('Error fetching balance:', error);
+    }
+  };
+
+  const fetchContractDetails = async () => {
+    try {
+      if (contract) {
+        const teamA = await contract.methods.getTeamAName().call();
+        const teamB = await contract.methods.getTeamBName().call();
+        const oddA = await contract.methods.viewOdds(1).call();
+        const oddB = await contract.methods.viewOdds(2).call();
+        setTeamAName(teamA);
+        setTeamBName(teamB);
+        setOddA((oddA / 100).toFixed(2));
+        setOddB((oddB / 100).toFixed(2));
+      }
+    } catch (error) {
+      console.error('Error fetching contract details:', error);
     }
   };
 
@@ -50,7 +69,7 @@ function App() {
       try {
         if (window.ethereum) {
           await window.ethereum.request({ method: 'eth_requestAccounts' });
-          await fetchBalance(); 
+          await fetchBalance();
         } else {
           alert('Por favor, instale o MetaMask para usar esta aplicação.');
         }
@@ -58,16 +77,22 @@ function App() {
         console.error('Error connecting to MetaMask:', error);
       }
     };
-  
+
     connectWallet();
-  
+
     const balanceInterval = setInterval(async () => {
       await fetchBalance();
-      await fetchContractBalance(); // Atualiza o saldo do contrato também
+      await fetchContractBalance();
     }, 1000);
-  
+
     return () => clearInterval(balanceInterval);
-  }, [contractAddress]); // Adiciona `contractAddress` como dependência para garantir que o saldo seja atualizado quando o contrato mudar
+  }, [contractAddress]);
+
+  useEffect(() => {
+    if (contract) {
+      fetchContractDetails(); // Fetch contract details when contract is set
+    }
+  }, [contract]);
 
   const handleContractAddressChange = (e) => {
     setContractAddress(e.target.value);
@@ -77,13 +102,14 @@ function App() {
     if (web3.utils.isAddress(contractAddress)) {
       const newContract = new web3.eth.Contract(BettingABI, contractAddress);
       setContract(newContract);
-
-      // Verifica o saldo do contrato imediatamente após a confirmação
+      console.log(`Endereço do contrato definido: ${contractAddress}`);
+      await fetchContractDetails(); // Fetch details immediately after confirming address
       await fetchContractBalance();
     } else {
       alert('Por favor, insira um endereço válido de contrato.');
     }
   };
+
 
   const handleTeamClick = (selectedTeam) => {
     setTeam(selectedTeam);
@@ -109,17 +135,17 @@ function App() {
       const balance = web3.utils.fromWei(balanceInWei, 'ether');
       console.log(`Saldo da conta: ${balance} ETH`);
       console.log(`Saldo da conta (Wei): ${balanceInWei}`);
-  
+
       const amountInWei = web3.utils.toWei(betAmount, 'ether');
       if (parseFloat(amountInWei) > parseFloat(balanceInWei)) {
         alert('Saldo insuficiente para realizar a aposta.');
         return;
       }
-  
+
       try {
-        await contract.methods.placeBet(team === 'Time A' ? 1 : 2)
-          .send({ 
-            from: account, 
+        await contract.methods.placeBet(team === teamAName ? 1 : 2)
+          .send({
+            from: account,
             value: amountInWei,
             gas: 3000000,
             gasPrice: web3.utils.toWei('20', 'gwei')
@@ -162,19 +188,19 @@ function App() {
           <div className="button-container">
             <div>
               <button
-                className={team === 'Time A' ? 'selected' : ''}
-                onClick={() => handleTeamClick('Time A')}
+                className={team === teamAName ? 'selected' : ''}
+                onClick={() => handleTeamClick(teamAName)}
               >
-                Time A
+                {teamAName}
               </button>
               <p>ODD: {oddA}</p>
             </div>
             <div>
               <button
-                className={team === 'Time B' ? 'selected' : ''}
-                onClick={() => handleTeamClick('Time B')}
+                className={team === teamBName ? 'selected' : ''}
+                onClick={() => handleTeamClick(teamBName)}
               >
-                Time B
+                {teamBName}
               </button>
               <p>ODD: {oddB}</p>
             </div>

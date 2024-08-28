@@ -44,20 +44,39 @@
 		"type": "event"
 	},
 	{
-		"inputs": [],
-		"name": "addFunds",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
+		"anonymous": false,
 		"inputs": [
 			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"indexed": false,
 				"internalType": "uint256",
-				"name": "winningOption",
+				"name": "amount",
 				"type": "uint256"
 			}
 		],
+		"name": "Transfer",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "option",
+				"type": "uint256"
+			}
+		],
+		"name": "WinningOptionSet",
+		"type": "event"
+	},
+	{
+		"inputs": [],
 		"name": "distributeWinnings",
 		"outputs": [],
 		"stateMutability": "nonpayable",
@@ -68,6 +87,11 @@
 			{
 				"internalType": "uint256",
 				"name": "option",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "betAmount",
 				"type": "uint256"
 			}
 		],
@@ -80,11 +104,11 @@
 		"inputs": [
 			{
 				"internalType": "uint256",
-				"name": "amount",
+				"name": "option",
 				"type": "uint256"
 			}
 		],
-		"name": "withdrawFunds",
+		"name": "setWinningOption",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -100,6 +124,16 @@
 				"internalType": "uint256",
 				"name": "_maxBetAmount",
 				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "_teamAName",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_teamBName",
+				"type": "string"
 			}
 		],
 		"stateMutability": "nonpayable",
@@ -148,14 +182,8 @@
 		"type": "function"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "option",
-				"type": "uint256"
-			}
-		],
-		"name": "calculateOdd",
+		"inputs": [],
+		"name": "getContractBalance",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -167,29 +195,52 @@
 		"type": "function"
 	},
 	{
-		"inputs": [
+		"inputs": [],
+		"name": "getMyBalance",
+		"outputs": [
 			{
 				"internalType": "uint256",
-				"name": "index",
+				"name": "",
 				"type": "uint256"
 			}
 		],
-		"name": "getBetDetails",
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getTeamAName",
 		"outputs": [
 			{
-				"internalType": "address",
+				"internalType": "string",
 				"name": "",
-				"type": "address"
-			},
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getTeamBName",
+		"outputs": [
 			{
-				"internalType": "uint256",
+				"internalType": "string",
 				"name": "",
-				"type": "uint256"
-			},
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "isActive",
+		"outputs": [
 			{
-				"internalType": "uint256",
+				"internalType": "bool",
 				"name": "",
-				"type": "uint256"
+				"type": "bool"
 			}
 		],
 		"stateMutability": "view",
@@ -242,7 +293,65 @@
 	},
 	{
 		"inputs": [],
+		"name": "teamAName",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "teamBName",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
 		"name": "totalAmount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "option",
+				"type": "uint256"
+			}
+		],
+		"name": "viewOdds",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "winningOption",
 		"outputs": [
 			{
 				"internalType": "uint256",
