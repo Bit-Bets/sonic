@@ -1,5 +1,31 @@
 [
 	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "initialBank",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_maxBetAmount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "_teamAName",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_teamBName",
+				"type": "string"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
 		"anonymous": false,
 		"inputs": [
 			{
@@ -77,70 +103,6 @@
 	},
 	{
 		"inputs": [],
-		"name": "distributeWinnings",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "option",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "betAmount",
-				"type": "uint256"
-			}
-		],
-		"name": "placeBet",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "option",
-				"type": "uint256"
-			}
-		],
-		"name": "setWinningOption",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "initialBank",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_maxBetAmount",
-				"type": "uint256"
-			},
-			{
-				"internalType": "string",
-				"name": "_teamAName",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "_teamBName",
-				"type": "string"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "constructor"
-	},
-	{
-		"inputs": [],
 		"name": "bank",
 		"outputs": [
 			{
@@ -179,6 +141,13 @@
 			}
 		],
 		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "distributeWinnings",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -289,6 +258,37 @@
 			}
 		],
 		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "option",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "betAmount",
+				"type": "uint256"
+			}
+		],
+		"name": "placeBet",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "option",
+				"type": "uint256"
+			}
+		],
+		"name": "setWinningOption",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{

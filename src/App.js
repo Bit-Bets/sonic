@@ -38,14 +38,21 @@ function App() {
   const fetchContractDetails = async () => {
     try {
       if (contract) {
+        console.log('Fetching team names...');
         const teamA = await contract.methods.getTeamAName().call();
         const teamB = await contract.methods.getTeamBName().call();
-        const oddA = await contract.methods.viewOdds(1).call();
-        const oddB = await contract.methods.viewOdds(2).call();
         setTeamAName(teamA);
         setTeamBName(teamB);
-        setOddA((oddA / 100).toFixed(2));
-        setOddB((oddB / 100).toFixed(2));
+
+        console.log('Fetching odds for Team A...');
+        const oddA = await contract.methods.viewOdds(1).call();
+        console.log('Odd A:', oddA.toString());  // Converte BigInt para String
+        setOddA((Number(oddA) / 100).toFixed(2));  // Converte para número antes de calcular
+
+        console.log('Fetching odds for Team B...');
+        const oddB = await contract.methods.viewOdds(2).call();
+        console.log('Odd B:', oddB.toString());  // Converte BigInt para String
+        setOddB((Number(oddB) / 100).toFixed(2));  // Converte para número antes de calcular
       }
     } catch (error) {
       console.error('Error fetching contract details:', error);
@@ -88,9 +95,14 @@ function App() {
     return () => clearInterval(balanceInterval);
   }, [contractAddress]);
 
+  // Aqui adicionamos o intervalo para atualizar os detalhes do contrato a cada 1 segundo
   useEffect(() => {
     if (contract) {
-      fetchContractDetails(); // Fetch contract details when contract is set
+      fetchContractDetails(); // Fetch initial contract details when contract is set
+
+      const contractDetailsInterval = setInterval(fetchContractDetails, 1000); // Atualiza as odds a cada 1 segundo
+
+      return () => clearInterval(contractDetailsInterval); // Limpa o intervalo quando o componente é desmontado
     }
   }, [contract]);
 
@@ -109,7 +121,6 @@ function App() {
       alert('Por favor, insira um endereço válido de contrato.');
     }
   };
-
 
   const handleTeamClick = (selectedTeam) => {
     setTeam(selectedTeam);
@@ -137,28 +148,32 @@ function App() {
       console.log(`Saldo da conta (Wei): ${balanceInWei}`);
 
       const amountInWei = web3.utils.toWei(betAmount, 'ether');
-      if (parseFloat(amountInWei) > parseFloat(balanceInWei)) {
+      console.log(`Valor da aposta (Wei): ${amountInWei}`);
+
+      if (amountInWei > balanceInWei.toString()) {
         alert('Saldo insuficiente para realizar a aposta.');
         return;
       }
 
       try {
-        await contract.methods.placeBet(team === teamAName ? 1 : 2)
-          .send({
-            from: account,
-            value: amountInWei,
-            gas: 3000000,
-            gasPrice: web3.utils.toWei('20', 'gwei')
-          });
+        await contract.methods.placeBet(team === teamAName ? 1 : 2, amountInWei)
+            .send({
+                from: account,
+                value: amountInWei,
+                gas: 5000000, // Aumentado para testar
+                gasPrice: web3.utils.toWei('20', 'gwei')
+            });
         alert(`Você apostou ETH ${betAmount} no ${team}. Possível retorno: ETH ${totalReturn}`);
-      } catch (error) {
+    } catch (error) {
         alert('Erro ao realizar a aposta. Verifique se você tem fundos suficientes.');
         console.error('Erro ao realizar a aposta:', error);
-      }
+    }
+    
     } else {
       alert('Por favor, selecione um time e insira um valor para apostar.');
     }
   };
+
 
   return (
     <div className="App">
